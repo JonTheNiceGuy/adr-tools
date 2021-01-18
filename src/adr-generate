@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-eval "$($(dirname $0)/adr-config)"
+adr_bin_dir="$(dirname "$0")"
+eval "$("$(dirname "$0")/adr-config")"
 
 ## usage: adr generate [REPORT [OPTION ...]]
 ##
@@ -25,9 +26,9 @@ eval "$($(dirname $0)/adr-config)"
 ##
 ##     adr help generate toc
 
-cmd=$1
+cmd="$1"
 
-if [ -z $cmd ]
+if [ -z "$cmd" ]
 then
     (cd "$adr_bin_dir" && find . -name '_adr_generate_*') | cut -c 17-
 else
