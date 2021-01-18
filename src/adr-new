@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
-eval "$($(dirname $0)/adr-config)"
+adr_bin_dir="$(dirname "$0")"
+adr_template_dir="$(dirname "$0")"
+eval "$("$(dirname "$0")/adr-config")"
 
 ## usage: adr new [-s SUPERCEDED] [-l TARGET:LINK:REVERSE-LINK] TITLE_TEXT...
 ##
@@ -61,9 +63,6 @@ do
 		l)
 			links+=("$OPTARG")
 			;;
-        --)
-            break
-            ;;
         *)
             echo "Not implemented: $arg" >&2
             exit 1
@@ -74,7 +73,7 @@ shift $((OPTIND-1))
 
 dstdir=$("$adr_bin_dir/_adr_dir")
 template="$ADR_TEMPLATE"
-if [ -z $template ]
+if [ -z "$template" ]
 then
     template="$dstdir/templates/template.md"
     if [ ! -f "$template" ]
@@ -83,7 +82,7 @@ then
     fi
 fi
 
-title="$@"
+title="$*"
 
 if [ -z "$title" ]
 then
@@ -91,26 +90,27 @@ then
     exit 1
 fi
 
-if [ -d $dstdir ]
+if [ -d "$dstdir" ]
 then
-    maxid=$(ls $dstdir | grep -Eo '^[0-9]+' | sed -e 's/^0*//' | sort -rn | head -1)
-    newnum=$(($maxid + 1))
+    # shellcheck disable=SC2010
+    maxid="$(ls "$dstdir" | grep -Eo '^[0-9]+' | sed -e 's/^0*//' | sort -rn | head -1)"
+    newnum=$((maxid + 1))
 else
     newnum=1
 fi
 
 newid=$(printf "%04d" $newnum)
-slug=$(echo -n $title | tr -Ccs [:alnum:] - | tr [:upper:] [:lower:] | sed -e 's/[^[:alnum:]]*$//' -e 's/^[^[:alnum:]]*//')
+slug=$(echo -n "$title" | tr -Ccs "[:alnum:]" - | tr "[:upper:]" "[:lower:]" | sed -e 's/[^[:alnum:]]*$//' -e 's/^[^[:alnum:]]*//')
 dstfile=$dstdir/$newid-$slug.md
 date=${ADR_DATE:-$(date +%Y-%m-%d)}
 
-mkdir -p $dstdir
-cat $template | sed \
-    -e "s|NUMBER|$newnum|" \
-    -e "s|TITLE|$title|" \
-    -e "s|DATE|$date|" \
-    -e "s|STATUS|Accepted|" \
-    > $dstfile
+mkdir -p "$dstdir"
+sed "$template" \
+	-e "s|NUMBER|$newnum|" \
+	-e "s|TITLE|$title|" \
+	-e "s|DATE|$date|" \
+	-e "s|STATUS|Accepted|" \
+	> "$dstfile"
 
 for target in "${superceded[@]}"
 do
@@ -121,13 +121,13 @@ done
 
 for l in "${links[@]}"
 do
-	target="$(echo $l | cut -d : -f 1)"
-	forward_link="$(echo $l | cut -d : -f 2)"
-	reverse_link="$(echo $l | cut -d : -f 3)"
+	target="$(echo "$l" | cut -d : -f 1)"
+	forward_link="$(echo "$l" | cut -d : -f 2)"
+	reverse_link="$(echo "$l" | cut -d : -f 3)"
 	
 	"$adr_bin_dir/_adr_add_link" "$dstfile" "$forward_link" "$target"
 	"$adr_bin_dir/_adr_add_link" "$target" "$reverse_link" "$dstfile"
 done
 
-${VISUAL:-${EDITOR:-true}} $dstfile
-echo $dstfile
+${VISUAL:-${EDITOR:-true}} "$dstfile"
+echo "$dstfile"
