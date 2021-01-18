@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
-eval "$($(dirname $0)/adr-config)"
+adr_bin_dir="$(dirname "$0")"
+eval "$("$(dirname "$0")/adr-config")"
 
 current_status=${1:?FROM}
 file=$("$adr_bin_dir/_adr_file" "${2:?FILE}")
