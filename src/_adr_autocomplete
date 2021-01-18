@@ -1,28 +1,53 @@
 #!/bin/bash
-eval "$($(dirname $0)/adr-config)"
+adr_bin_dir="$(dirname "$0")"
+eval "$("$(dirname "$0")"/adr-config)"
 
 cmds=("$@")
-available_commands=$( $adr_bin_dir/_adr_commands | sort )
+available_commands=$("$adr_bin_dir/_adr_commands" | sort)
 
-if (( ${#@} <= 2))
+if (( ${#cmds} <= 2))
 then
-  suggestions=($( compgen -W "${available_commands}" -- "$2" ))
-  if [ "$suggestions" != "$2" ]
+  match=0
+  suggestions=()
+  while IFS='' read -r line
+  do
+    if [ "$line" == "$2" ]
+    then
+      match=1
+    fi
+    suggestions+=("$line");
+  done < <(compgen -W "${available_commands}" -- "$2")
+  if [ $match -eq 0 ]
   then
     echo "${suggestions[*]}"
     exit 0
   fi
 fi
 
-subcmds_files=( $(compgen -G "$adr_bin_dir/_adr_$2_"'*' | sort ) )
+subcmds_files=()
+while IFS='' read -r line
+do
+  subcmds_files+=("$line");
+done < <(compgen -G "$adr_bin_dir/_adr_$2_"'*' | sort )
 if (( ${#subcmds_files} > 0 ))
 then
-  subcmds=$( for f in "${subcmds_files[@]}"
+  subcmds=$(
+    for f in "${subcmds_files[@]}"
+    do
+      basename "$f" | cut -c $(( ${#2} + 7 ))-
+    done
+  )
+  match=0
+  suggestions=()
+  while IFS='' read -r line
   do
-    basename $f | cut -c $(( ${#2} + 7 ))-
-  done )
-  suggestions=($( compgen -W "${subcmds}" -- "$3" ))
-  if [ "$suggestions" != "$3" ]
+    if [ "$line" == "$3" ]
+    then
+      match=1
+    fi
+    suggestions+=("$line");
+  done < <( compgen -W "${subcmds}" -- "$3" )
+  if [ $match -eq 0 ]
   then
     echo "${suggestions[*]}"
     exit 0
