@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 adr_bin_dir="$(dirname "$0")"
-eval "$("$(dirname "$0")"/adr-config)"
+eval "$("$(dirname "$0")/adr-config")"
 
 source=$("$adr_bin_dir/_adr_file" "${1:?SOURCE}")
 link_type="${2:?LINK TYPE}"

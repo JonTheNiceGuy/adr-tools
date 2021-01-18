@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 adr_bin_dir="$(dirname "$0")"
-eval "$("$(dirname "$0")"/adr-config)"
+eval "$("$(dirname "$0")/adr-config")"
 
 ## usage: adr generate graph [-p LINK_PREFIX] [-e LINK-EXTENSION]
 ##
